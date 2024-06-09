@@ -8,46 +8,51 @@ load hershey;
 totaltraj= [];
 scale = 0.04;
 x_offset = 0;
+y_offset = 0;
 zPos_plane  = 30;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %A, B
+
 phrase = 'ASDFSDFSDF';
 %C
-phrase = '13+4=';
+phrase = '13+5=';
 xPos_plane = -588.53;
 yPos_plane = -133.30;
 zRot_plane = 0;
 numbers = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %C
+stringcells = {phrase};
 operators =  {'+', '-', '*'};
 
 for i = 1:length(operators)
     if contains(phrase, operators(i))
         phrase = phrase(1:end-1);
-        numbers = strsplit(phrase, operators)
-        number1  = str2double(numbers(1))
-        number2 = str2double(numbers(2))
-        used_operator = cell2mat(operators(i))
-    end
-end
- if ~isnan(number1) && ~isnan(number2)
+        numbers = strsplit(phrase, operators);
+        number1  = str2double(numbers(1));
+        number2 = str2double(numbers(2));
+        used_operator = cell2mat(operators(i));
+
+        if ~isnan(number1) && ~isnan(number2)
      switch used_operator
          case '+'
-             result = number1 + number2
+             result = number1 + number2;
          case '-'
              result = number1 - number2;
          case '*'
              result = number1 * number2;
      end
-    phrase = strcat(numbers(1),',',numbers(2),used_operator,',',num2str(result))
-
+    stringcells = {num2str(number1),strcat(num2str(number2),used_operator),num2str(result)};
  end
+    end
+end
+ 
 
-%
-for i = 1:length(phrase)
-    character = hershey{phrase(i)};
+for j = 1:length(stringcells)
+char = stringcells{j};
+for i = 1:length(char)
+    character = hershey{char(i)};
     path = [scale*character.stroke; zeros(1,numcols(character.stroke))]; % create the path 
 
 % Where ever there is an nan it indicates that we need to lift up.
@@ -65,13 +70,17 @@ traj = [(path'*1000)]; % convert to the mm units so that we can use the rtde too
 %scatter3(traj(:,1), traj(:,2), traj(:,3));
 %plot3(traj(:,1), traj(:,2), traj(:,3));
 traj(:,1) = traj(:,1) + x_offset;
+traj(:,2) = traj(:,2) - y_offset;
 x_offset = x_offset + max(traj(:,1))-min(traj(:,1))+(0.2*scale*1000);
+
 
 R_matrix = rot2(zRot_plane, 'deg');
 traj(:,1:2) = (R_matrix * traj(:,1:2)')';
 totaltraj = [totaltraj; traj];
 end
-
+y_offset = y_offset + max(traj(:,2))-min(traj(:,2))+(0.2*scale*1000);
+x_offset = 0;
+end
 
 figure(1);
 clf;
