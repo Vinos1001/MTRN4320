@@ -9,23 +9,23 @@ totaltraj= [];
 scale = 0.04;
 x_offset = 0;
 y_offset = 0;
-zPos_plane  = 30;
+zPos_plane  = 98.3;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %A, B
 
-phrase = 'ASDFSDFSDF';
+phrase = 'ab    cd4';
 %C
-phrase = '13+5=';
+%phrase = '5*4=';
 xPos_plane = -588.53;
 yPos_plane = -133.30;
-zRot_plane = 0;
+zRot_plane = 30;
 numbers = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %C
 stringcells = {phrase};
 operators =  {'+', '-', '*'};
-
+%DO PAD function 
 for i = 1:length(operators)
     if contains(phrase, operators(i))
         phrase = phrase(1:end-1);
@@ -78,8 +78,28 @@ R_matrix = rot2(zRot_plane, 'deg');
 traj(:,1:2) = (R_matrix * traj(:,1:2)')';
 totaltraj = [totaltraj; traj];
 end
-y_offset = y_offset + max(traj(:,2))-min(traj(:,2))+(0.2*scale*1000);
-x_offset = 0;
+if length(stringcells) > 1
+y_offset = y_offset+ max(traj(:,2))-min(traj(:,2))+(0.2*0.1*1000);
+
+    if j==1
+        if(length(stringcells{1})==length(stringcells{2}))
+            x_offset = max(traj(:,1))-min(traj(:,1))-(0.2*scale*1000);
+        else
+            x_offset = 0;
+        end
+    end
+
+    if(j==2)
+        if(length(stringcells{1}) > length(stringcells{3}))
+             x_offset = (length(stringcells{1})- length(stringcells{3}))*(max(traj(:,1))-min(traj(:,1)));         
+        elseif(length(stringcells{1}) < length(stringcells{3}))
+            x_offset = (length(stringcells{1})- length(stringcells{3}))*(max(traj(:,1))-min(traj(:,1)))-(0.2*scale*1000);
+        else 
+        x_offset = 0;
+        
+        end
+    end
+end
 end
 
 figure(1);
@@ -91,9 +111,9 @@ plot3(totaltraj(:,1), totaltraj(:,2), totaltraj(:,3));
 
 
 % % TCP Host and Port settings
-host = '127.0.0.1'; % THIS IP ADDRESS MUST BE USED FOR THE VIRTUAL BOX VM
+%host = '127.0.0.1'; % THIS IP ADDRESS MUST BE USED FOR THE VIRTUAL BOX VM
 %host = '192.168.230.128'; % THIS IP ADDRESS MUST BE USED FOR THE VMWARE
-% host = '192.168.0.100'; % THIS IP ADDRESS MUST BE USED FOR THE REAL ROBOT
+ host = '192.168.0.100'; % THIS IP ADDRESS MUST BE USED FOR THE REAL ROBOT
 port = 30003;
 % 
 
