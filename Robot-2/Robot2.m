@@ -14,12 +14,12 @@ zPos_plane  = 98.3;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %A, B
 
-phrase = 'ab    cd4';
+phrase = 'abcd4';
 %C
-%phrase = '5*4=';
+phrase = '5*4=';
 xPos_plane = -588.53;
 yPos_plane = -133.30;
-zRot_plane = 30;
+zRot_plane = 0;
 numbers = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %C
@@ -79,7 +79,7 @@ traj(:,1:2) = (R_matrix * traj(:,1:2)')';
 totaltraj = [totaltraj; traj];
 end
 if length(stringcells) > 1
-y_offset = y_offset+ max(traj(:,2))-min(traj(:,2))+(0.2*0.1*1000);
+y_offset = y_offset+ 40; %max(traj(:,2))-min(traj(:,2))+(0.2*0.1*1000);
 
     if j==1
         if(length(stringcells{1})==length(stringcells{2}))
@@ -93,7 +93,7 @@ y_offset = y_offset+ max(traj(:,2))-min(traj(:,2))+(0.2*0.1*1000);
         if(length(stringcells{1}) > length(stringcells{3}))
              x_offset = (length(stringcells{1})- length(stringcells{3}))*(max(traj(:,1))-min(traj(:,1)));         
         elseif(length(stringcells{1}) < length(stringcells{3}))
-            x_offset = (length(stringcells{1})- length(stringcells{3}))*(max(traj(:,1))-min(traj(:,1)))-(0.2*scale*1000);
+            x_offset = (length(stringcells{1})- length(stringcells{3}))*(max(traj(:,1))-min(traj(:,1))+(0.2*scale*1000));
         else 
         x_offset = 0;
         
