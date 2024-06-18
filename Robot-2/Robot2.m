@@ -9,21 +9,21 @@ totaltraj= [];
 scale = 0.04;
 x_offset = 0;
 y_offset = 0;
-zPos_plane  = 98.3;
+zPos_plane  = 22;
 numbers = [];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%A, B
-
-phrase = '12a3b4n5m6';
+%CHANGE VALUES HERE
+phrase = '66*11=';
 %C
-phrase = '12345 * 678 =';
+%phrase = '12345 * 123456 =';
 xPos_plane = -588.53;
-yPos_plane = -133.30;
-zRot = 0;
-
+yPos_plane = -350;
+rotation = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %C
+zRot = -rotation;
+
 stringcells = {phrase};
 phrase = strrep(phrase, 'x', '*');
 
@@ -64,9 +64,9 @@ for j = 1:length(stringcells)
 
         % At these positions add in a z hight
         path(:,k) = path(:,k-1);
-        path(3,k) = 0.2*scale; % Determine the hight of the lift up motions. 0.2 * scale is the height. 0.2 is in m
+        path(3,k) = 0.5*scale; % Determine the hight of the lift up motions. 0.2 * scale is the height. 0.2 is in m
         path(2,:) = path(2,:) + 0.05*scale;
-        path(:,end+1) = [path(1,end);path(2,end);0.2*scale];
+        path(:,end+1) = [path(1,end);path(2,end);0.5*scale];
 
 
         traj = [(path'*1000)]; % convert to the mm units so that we can use the rtde toolbox
@@ -81,7 +81,7 @@ for j = 1:length(stringcells)
             x_offset = x_offset + max(traj(:,1))-min(traj(:,1))+(0.2*scale*1000);
         end
 
-        R_matrix = rot2(zRot, 'deg');
+        R_matrix = rot2(90-zRot, 'deg');
         traj(:,1:2) = (R_matrix * traj(:,1:2)')';
         totaltraj = [totaltraj; traj];
     end
@@ -139,7 +139,7 @@ path = [];
 
 % setting move parameters
 v = 0.5;
-a =1.2;
+a =1.0;
 blend = 0.001;
 
 % Populate the path array
@@ -158,5 +158,5 @@ end
 poses = rtde.movej(path);
 
 rtde.drawPath(poses);
-%rtde.movej(home);
+rtde.movej(home);
 rtde.close;
