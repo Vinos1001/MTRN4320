@@ -6,7 +6,7 @@
 %% Initialisation
 clear all;
 clc; close all;
-
+startup_rvc;
 host = '127.0.0.1'; % THIS IP ADDRESS MUST BE USED FOR THE VIRTUAL BOX VM
 % host = '192.168.0.100'; % THIS IP ADDRESS MUST BE USED FOR THE REAL ROBOT
 port = 30003;
@@ -38,3 +38,8 @@ disp("Max linear velocity achieved: ");
 disp(v_max);
 
 rtde.close();
+
+%%
+function v_max = calculateMaxLinearVelocity(joints, jointVelocities)
+v_max = 1;
+end
