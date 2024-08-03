@@ -1,6 +1,6 @@
 %Lab2 code 
 
-I = imread('TestImage.jpg');
+I = imread('3.jpg');
 [ids,locs,detectedFamily] = readArucoMarker(I)
 numMarkers = length(ids);
 for i = 1:numMarkers
