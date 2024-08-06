@@ -1,53 +1,3 @@
-%BUG2 Bug navigation class
-%
-% A concrete subclass of the abstract Navigation class that implements the bug2 
-% navigation algorithm.  This is a simple automaton that performs local 
-% planning, that is, it can only sense the immediate presence of an obstacle.
-%
-% Methods::
-%   Bug2        Constructor
-%   query       Find a path from start to goal
-%   plot        Display the obstacle map
-%   display     Display state/parameters in human readable form
-%   char        Convert to string
-%
-% Example::
-%         load map1             % load the map
-%         bug = Bug2(map);      % create navigation object
-%         start = [20,10]; 
-%         goal = [50,35];
-%         bug.query(start, goal);   % animate path
-%
-% Reference::
-% -  Dynamic path planning for a mobile automaton with limited information on the environment,,
-%    V. Lumelsky and A. Stepanov, 
-%    IEEE Transactions on Automatic Control, vol. 31, pp. 1058-1063, Nov. 1986.
-% -  Robotics, Vision & Control, Sec 5.1.2,
-%    Peter Corke, Springer, 2011.
-%  
-% See also Navigation, DXform, Dstar, PRM.
-
-
-
-% Copyright (C) 1993-2017, by Peter I. Corke
-%
-% This file is part of The Robotics Toolbox for MATLAB (RTB).
-% 
-% RTB is free software: you can redistribute it and/or modify
-% it under the terms of the GNU Lesser General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% 
-% RTB is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU Lesser General Public License for more details.
-% 
-% You should have received a copy of the GNU Leser General Public License
-% along with RTB.  If not, see <http://www.gnu.org/licenses/>.
-%
-% http://www.petercorke.com
-
 classdef myBug2 < Navigation
 
     properties(Access=protected)
@@ -201,18 +151,7 @@ classdef myBug2 < Navigation
                     plot(x, y, ls);
                 end
         end
-        function edgeList = getNonDiagonalEdgePoints(bug, point)
-    % Define the four non-diagonal directions
-    directions = [1 0; -1 0; 0 1; 0 -1]';
-    
-    edgeList = [];
-    for i = 1:4
-        newPoint = point + directions(:,i);
-        if ~bug.isoccupied(newPoint)
-            edgeList = [edgeList, newPoint];
-        end
-    end
-end
+        
         function n = next(bug, robot)
             
             % implement the main state machine for bug2
@@ -226,25 +165,19 @@ end
                 if colnorm(bug.goal - robot) == 0 % are we there yet?
                     return
                 end
-
                 % motion on line toward goal
                 d = bug.goal-robot;
-                if bug.j == 1 || mod(bug.j, 2) == 0
+                
+                if abs(d(1)) > abs(d(2));
                     % line slope less than 45 deg
                     dx = sign(d(1));
-                    %L = bug.mline;
-                    %y = -( (robot(1)+dx)*L(1) + L(3) ) / L(2);
-                    %dy = round(y - robot(2));
+                    
                     dy = 0;
-                % else
-                %     % line slope greater than 45 deg
-                %     dy = sign(d(2));
-                %     L = bug.mline;
-                %     x = -( (robot(2)+dy)*L(2) + L(3) ) / L(1);
-                %     dx = round(x - robot(1));
-                else 
-                    dx = 0;
+                else
+                    % line slope greater than 45 deg
                     dy = sign(d(2));
+                    
+                    dx = 0;
                 end
                 
 
@@ -254,14 +187,13 @@ end
                     bug.H(bug.j,:) = robot; % define hit point
                     bug.step = 2;
                     % get a list of all the points around the obstacle
-                    %bug.edge = edgelist(bug.occgridnav == 0, robot);
-                    bug.edge = bug.getNonDiagonalEdgePoints(robot);
+                    bug.edge = edgelist(bug.occgridnav == 0, robot);
                     bug.k = 2;  % skip the first edge point, we are already there
                 else
                     n = robot + [dx; dy];
-                    bug.j = bug.j + 1;
                 end
             end % step 1
+
             if bug.step == 2
                 % Step 2.  Move around the obstacle until we reach a point
                 % on the M-line closer than when we started.
@@ -301,4 +233,3 @@ end
 
     end % methods
 end % classdef
-

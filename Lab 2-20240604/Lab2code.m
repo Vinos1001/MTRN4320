@@ -1,6 +1,15 @@
 %Lab2 code 
+clear all;
+cam = webcam(2);
+pause(5);
+img1 = snapshot(cam);
+I = snapshot(cam);
+%img = imread("3.jpg");
+figure(3)
 
-I = imread('3.jpg');
+
+imshow(I)
+;
 [ids,locs,detectedFamily] = readArucoMarker(I)
 numMarkers = length(ids);
 for i = 1:numMarkers
