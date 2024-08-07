@@ -168,7 +168,7 @@ classdef myBug2 < Navigation
                 % motion on line toward goal
                 d = bug.goal-robot;
                 
-                if abs(d(1)) > abs(d(2));
+                if abs(d(1)) > abs(d(2))
                     % line slope less than 45 deg
                     dx = sign(d(1));
                     
