@@ -1,3 +1,5 @@
+%Ask if it has to continuously repeat or does it just go and ask me to go again and ask again to go again.
+
 %GRID AND BUG2
 close all;
 clc;
@@ -7,15 +9,15 @@ startup_rvc;
         %pause(3);
         %real_img = snapshot(cam);
         real_img =imread("3.jpg");
-        [new_img_board,newform,table_coords, board_coords] = understandImage(real_img);
+        [new_img_board,newform,table_coords, board_coords, blueCentroids] = understandImage(real_img);
 
 
 starter_grid = [ 
         1 1 1 1 1 1 1 1 1 1
-        1 1 0 0 0 4 1 0 1 1
-        1 2 0 0 1 1 0 0 0 1
-        1 2 0 1 0 0 0 0 0 1
-        1 2 0 0 0 0 0 0 3 1
+        1 1 0 0 0 0 0 0 1 1
+        1 0 0 0 1 0 0 0 0 1
+        1 0 0 1 0 0 0 0 0 1
+        1 4 2 0 0 2 2 0 3 1
         1 1 0 0 0 0 0 0 1 1
         1 1 1 1 1 1 1 1 1 1 ];
 grid = scaleGrid(starter_grid);
@@ -26,16 +28,16 @@ grid = scaleGrid(starter_grid);
 % 4 destination
 
 [start_postition,grid,blue_obstacle, walls, goal_postition]= analyseGrid(grid);
-blue_obstacle = idk(blue_obstacle)
+grid_blue_obstacle = idk(starter_grid);
 [path] = bug2stuff(start_postition, goal_postition, grid);
 
 %GETTING IMAGE AND STUFF AND ASKING ABOUT BLUE
 
     keepAsking = true;
 while keepAsking
-    resp = input('continue yeah/no:', 's');
+    resp = input('continue yes/no:', 's');
     
-    if strcmpi(resp, 'yeah')
+    if strcmpi(resp, 'yes')
         keepAsking = false;
     elseif strcmpi(resp, 'no')
         disp('Repeating the loop...');
@@ -46,7 +48,10 @@ while keepAsking
         %pause(3);
         %real_img = snapshot(cam);
         real_img =imread("3.jpg");
-        [new_img_board,newform,table_coords, board_coords] = understandImage(real_img);
+        [new_img_board,newform,table_coords, board_coords, blueCentroids] = understandImage(real_img);
+        [blue_current,blue_end] = checkblue(grid_blue_obstacle, new_img_board, blueCentroids, newform);
+        
+
     else
         disp('Invalid response- "yeah" or "no".');
     end
@@ -195,8 +200,11 @@ function corners = fixgetcorners(centers)
 end
 %%
 function organized_points = object_order(centers)
-   
-organized_points = sortrows(centers, [1,2]);
+   error = 20;
+rounded_x = round(centers(:,1) / error) * error;
+rounded_y = round(centers(:,2) / error) * error;
+new_centers = [rounded_x, rounded_y];
+organized_points = sortrows(new_centers, [1,2]);
 % error = 10;
     % [~, idx] = sort(centers(:,1), 'descend');
     % %sorted_centers = centers(idx,:);
@@ -273,7 +281,7 @@ function [start_postition,grid,blue_obstacle, walls, goal_postition] = analyseGr
     end
 end
 %% 
-function [new_img_board,newform, table_coords, board_coords]=understandImage(real_img)
+function [new_img_board,newform, table_coords, board_coords, blueCentroids]=understandImage(real_img)
     figure(3)
     subplot(2,2,1)
     imshow(real_img)
@@ -414,15 +422,126 @@ for i = 1:size(model_path,1)
 end
 end
 %%
-function mean_positions = idk(blue_obstacle)
-for i = 1:(size(blue_obstacle,1))/100
-        start_object = (i - 1) * 100 + 1;
-        end_object = i*100;
-       object_points =  blue_obstacle(start_object:end_object, :);
-       mean_pos = mean(object_points, 1);
-       mean_positions(i, :) = round(mean_pos);
+function blue = idk(sgrid)
+
+%for i = 1:(size(blue_obstacle,1))/100
+ %       start_object = (i - 1) * 100 + 1;
+  %      end_object = i*100;
+   %    object_points =  blue_obstacle(start_object:end_object, :);
+    %   mean_pos = mean(object_points, 1);
+     %  mean_positions(i, :) = round(mean_pos);
+
+%end
+%mean_positions = [mean_positions(:,2), mean_positions(:,1)];
+blue = [];
+for i = 1:size(sgrid,1)
+    for j = 1: size(sgrid,2)
+        if (sgrid(i,j)==2)
+            blue = cat(1, blue,[i*10+6-10,j*10+6-10]);
+            
+        end
+    end
+end
 
 end
-mean_positions = [mean_positions(:,2), mean_positions(:,1)];
 
+function [real_current_pos,real_end_pos] = checkblue(grid_blue_obstacle, new_img_board, blueCentroids, newform)
+    %for i= 1:size(grid_blue_obstacle, 1)
+      
+    grid_blue_obstacle =  [grid_blue_obstacle(:,2),70 - grid_blue_obstacle(:,1)];
+    %end
+    grid_coords = [86 54; 86 14; 16 54; 16, 14];
+    img_coords = new_img_board;
+    %this model image to grid
+    modelform = fitgeotrans(grid_coords,img_coords,'projective');
+    correct_places = [];
+    for i=1:size(grid_blue_obstacle,1)
+   
+        imageform = transformPointsForward(modelform, grid_blue_obstacle(i,:));
+        correct_places = cat(1,correct_places, imageform); 
+    end
+
+    img_index = [];
+    grid_index = [];
+    incorrect_now_empty = [];
+    counterA = 0;
+    for i = 1:size(correct_places,1)
+        for j = 1:size(correct_places,1)
+            if (abs(correct_places(i,:)-blueCentroids(j,:)) <=10)
+                img_index = cat(1, img_index, j);
+                counterA = counterA+1;
+            end
+        end
+        if(counterA ==0)
+            fprintf("INCORRECT PLACEMENT");
+            grid_index = cat(1,grid_index,i);
+            incorrect_now_empty = cat(1, incorrect_now_empty, correct_places(i,:));
+        end
+        counterA = 0;
+    end
+
+    counterB = 0;
+    current = [];
+    for i = 1:size(grid_blue_obstacle, 1)
+        for j = 1:size(img_index)
+            if i == img_index(j)
+                counterB = counterB+1;
+            end
+        end
+        if(counterB ==1)
+            fprintf("%d is correct", i);
+        else 
+            fprintf('%d needs to be moved',i);
+            current = cat(current,blueCentroids(i,:));
+        end
+        counterB = 0;
+    end
+%%
+%current %this is the incorrect 
+
+%% 
+    real_current_pos = [];
+    real_end_pos = [];
+    if isempty(current)
+        real_current_pos = [0 0];
+        real_end_pos = [0 0];
+    else
+        img_current_pos = [];
+        for i=1:size(path,1)
+ 
+            imageform = transformPointsInverse(newform, current(i,:));
+            img_current_pos = cat(1,img_current_pos, imageform);
+        end
+
+        world = [-230,60;-230,-520;-990,60;-990,-520];
+        %world = [0.60, -0.230; -0.520, -0.230;0.60, -0.990; -0.990, -0.520 ]
+        real_tform =  fitgeotrans(table_coords,world,'projective');
+
+        for i = 1:size(model_path,1)
+ 
+            robot_trans = transformPointsForward(real_tform, img_current_pos(i,:));
+            real_current_pos = cat(1,real_current_pos, robot_trans);
+        end
+    
+   %%
+%incorrect_now_empty %this is the correct one
+        img_end_pos = [];
+        for i=1:size(path,1)
+ 
+            imageform = transformPointsInverse(newform, incorrect_now_empty(i,:));
+            img_end_pos = cat(1,img_end_pos, imageform);
+        end
+
+        world = [-230,60;-230,-520;-990,60;-990,-520];
+        %world = [0.60, -0.230; -0.520, -0.230;0.60, -0.990; -0.990, -0.520 ]
+        real_tform =  fitgeotrans(table_coords,world,'projective');
+
+
+        for i = 1:size(model_path,1)
+ 
+            robot_trans = transformPointsForward(real_tform, img_end_pos(i,:));
+            real_end_pos = cat(1,real_end_pos, robot_trans);
+        end
+    
+    end
 end
